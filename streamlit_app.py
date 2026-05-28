@@ -31,7 +31,7 @@ st.markdown(
         max-width: 140px;}
 
     .e1rw0b1u3 {
-        max-width: 1400px;}
+        max-width: 1100px;}
     
     </style>
     """,
