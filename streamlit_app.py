@@ -26,6 +26,11 @@ st.markdown(
         padding: 0 !important;
         margin: 0 !important;
     }
+
+    .stSelectbox, .stNumberInput {
+        max-width: 140px;}
+
+    
     </style>
     """,
     unsafe_allow_html=True,
