@@ -30,6 +30,8 @@ st.markdown(
     .stSelectbox, .stNumberInput {
         max-width: 140px;}
 
+    .e1rw0b1u3 {
+        max-width: 1400px;}
     
     </style>
     """,
