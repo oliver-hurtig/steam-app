@@ -6,6 +6,31 @@ from functions import calculate_steam_energy_requirements
 st.set_page_config(page_title="Steam Energy Calculator", layout="wide")
 st.title("Steam Energy Requirements Calculator")
 
+st.markdown(
+    """
+    <style>
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    .stNumberInput button[data-testid="stNumberInputStepDown"],
+    .stNumberInput button[data-testid="stNumberInputStepUp"] {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 ureg = pint.UnitRegistry()
 Q_ = ureg.Quantity
 
@@ -31,79 +56,108 @@ st.markdown(
     "The results update automatically when any input changes."
 )
 
-col1, col2 = st.columns(2)
+
+def value_unit_input_row(
+    value_label,
+    unit_choices,
+    default,
+    unit_index=0,
+    value_help="",
+    unit_help="",
+    min_value=None,
+    max_value=None,
+    key_prefix=None,
+):
+    row = st.columns([1.1, 1], vertical_alignment="bottom")
+    value_key = f"{key_prefix}_value" if key_prefix else f"{value_label}_value"
+    unit_key = f"{key_prefix}_unit" if key_prefix else f"{value_label}_unit"
+
+    number_input_args = {
+        "value": default,
+        "format": "%.1f",
+        "help": value_help,
+        "key": value_key,
+    }
+    if min_value is not None:
+        number_input_args["min_value"] = min_value
+    if max_value is not None:
+        number_input_args["max_value"] = max_value
+
+    value = row[0].number_input(value_label, **number_input_args)
+    unit = row[1].selectbox(
+        "",
+        unit_choices,
+        index=unit_index,
+        help=unit_help,
+        label_visibility="collapsed",
+        key=unit_key,
+    )
+    return value, unit
+
+
+col1, col2, col3 = st.columns([1, 1, 1])
 
 with col1:
-    st.subheader("Initial conditions")
-    initial_temperature = st.number_input(
-        "Initial temperature",
-        value=15.0,
-        format="%.1f",
-        help="Initial water temperature.",
-    )
-    initial_temperature_unit = st.selectbox(
-        "Initial temperature unit",
+    st.subheader("Water")
+    initial_temperature, initial_temperature_unit = value_unit_input_row(
+        "Temperature",
         list(TEMP_UNITS.keys()),
-        index=0,
+        15.0,
+        unit_index=0,
+        value_help="Initial water temperature.",
+        unit_help="Initial temperature unit.",
+        key_prefix="initial_temperature",
     )
-    initial_pressure = st.number_input(
-        "Initial pressure",
-        value=1.0,
-        format="%.1f",
-        help="Initial water pressure.",
-    )
-    initial_pressure_unit = st.selectbox(
-        "Initial pressure unit",
+    initial_pressure, initial_pressure_unit = value_unit_input_row(
+        "Pressure",
         list(PRESSURE_UNITS.keys()),
-        index=0,
+        1.0,
+        unit_index=0,
+        value_help="Initial water pressure.",
+        unit_help="Initial pressure unit.",
+        key_prefix="initial_pressure",
     )
 
 with col2:
-    st.subheader("Target steam conditions")
-    final_temperature = st.number_input(
-        "Final temperature",
-        value=250.0,
-        format="%.1f",
-        help="Target steam temperature.",
-    )
-    final_temperature_unit = st.selectbox(
-        "Final temperature unit",
+    st.subheader("Steam")
+    final_temperature, final_temperature_unit = value_unit_input_row(
+        "Temperature",
         list(TEMP_UNITS.keys()),
-        index=0,
+        250.0,
+        unit_index=0,
+        value_help="Target steam temperature.",
+        unit_help="Final temperature unit.",
+        key_prefix="final_temperature",
     )
-    final_pressure = st.number_input(
-        "Final pressure",
-        value=25.0,
-        format="%.1f",
-        help="Target steam pressure.",
-    )
-    final_pressure_unit = st.selectbox(
-        "Final pressure unit",
+    final_pressure, final_pressure_unit = value_unit_input_row(
+        "Pressure",
         list(PRESSURE_UNITS.keys()),
-        index=1,
+        25.0,
+        unit_index=1,
+        value_help="Target steam pressure.",
+        unit_help="Final pressure unit.",
+        key_prefix="final_pressure",
     )
 
-st.subheader("Steam generator inputs")
-steamer_efficiency = st.number_input(
-    "Steamer efficiency",
-    value=0.9,
-    min_value=0.01,
-    max_value=1.0,
-    step=0.01,
-    format="%.2f",
-    help="Boiler/steamer efficiency as a fraction (0-1).",
-)
-LHV_natural_gas = st.number_input(
-    "Natural gas LHV",
-    value=35.0,
-    format="%.2f",
-    help="Lower heating value of natural gas.",
-)
-LHV_unit = st.selectbox(
-    "Natural gas LHV unit",
-    list(LHV_UNITS.keys()),
-    index=0,
-)
+with col3:
+    st.subheader("Conversion")
+    steamer_efficiency = st.number_input(
+        "Steamer efficiency",
+        value=0.9,
+        min_value=0.01,
+        max_value=1.0,
+        step=0.01,
+        format="%.2f",
+        help="Boiler/steamer efficiency as a fraction (0-1).",
+    )
+    LHV_natural_gas, LHV_unit = value_unit_input_row(
+        "Natural gas LHV",
+        list(LHV_UNITS.keys()),
+        35.0,
+        unit_index=0,
+        value_help="Lower heating value of natural gas. Generally in a range of 30-40 MJ/m³.",
+        key_prefix="LHV_natural_gas",
+    )
 
 input_error = None
 results = None
@@ -127,6 +181,11 @@ try:
 except Exception as exc:
     input_error = exc
 
+
+def format_compact(quantity, digits=1):
+    #compact_quantity = quantity.to_compact()
+    return f"{quantity:.{digits}f~P}"
+
 st.markdown("---")
 result_area = st.container()
 with result_area:
@@ -139,15 +198,15 @@ with result_area:
     else:
         st.metric(
             "Enthalpy change",
-            f"{results['delta_h'].magnitude:.1f} {results['delta_h'].units}"
+            format_compact(results["delta_h"], digits=1)
         )
         st.metric(
             "Energy needs",
-            f"{results['energy_needs'].magnitude:.1f} {results['energy_needs'].units}"
+            format_compact(results["energy_needs"], digits=1)
         )
         st.metric(
             "Natural gas volume",
-            f"{results['NG_volume'].magnitude:.1f} {results['NG_volume'].units}"
+            format_compact(results["NG_volume"], digits=1)
         )
         st.write(
             "Calculated energy requirements are based on steam generation from the provided initial "
