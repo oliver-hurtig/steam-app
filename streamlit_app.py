@@ -155,7 +155,7 @@ with col3:
         max_value=1.0,
         step=0.01,
         format="%.2f",
-        help="Boiler/steamer efficiency as a fraction (0-1).",
+        help="Enter as fraction (from 0.01 to 1). The steam boiler efficiency depends on the installation. It can vary from 75% for [older installation](https://ecoquery.ecoinvent.org/3.12/cutoff/dataset/4521/documentation), to [95%](https://www.sciencedirect.com/topics/engineering/boiler-efficiency). The use of [heat pump for steam generation](https://www.sciencedirect.com/science/article/pii/S0196890423012281) could significantly reduce the amount of energy consumed.",
     )
     LHV_natural_gas, LHV_unit = value_unit_input_row(
         "Natural gas LHV",
@@ -164,7 +164,7 @@ with col3:
         unit_index=0,
         value_help="""Lower heating value of natural gas.
         Generally in a range of 30-40 MJ/m³.
-        The Renewable Energy Directive uses 50 MJ/kg and a density of 0.79 kg/m³ (=39.5 MJ/m³).""",
+        The Renewable Energy Directive uses 50 MJ/kg and a density of 0.79 kg/m³ (=39.5 MJ/m³). [https://eur-lex.europa.eu/eli/dir/2018/2001/oj/eng]""",
         key_prefix="LHV_natural_gas",
     )
 
