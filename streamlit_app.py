@@ -160,9 +160,11 @@ with col3:
     LHV_natural_gas, LHV_unit = value_unit_input_row(
         "Natural gas LHV",
         list(LHV_UNITS.keys()),
-        35.0,
+        39.5,
         unit_index=0,
-        value_help="Lower heating value of natural gas. Generally in a range of 30-40 MJ/m³.",
+        value_help="""Lower heating value of natural gas.
+        Generally in a range of 30-40 MJ/m³.
+        The Renewable Energy Directive uses 50 MJ/kg and a density of 0.79 kg/m³ (=39.5 MJ/m³).""",
         key_prefix="LHV_natural_gas",
     )
 
